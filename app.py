@@ -23,17 +23,26 @@ st.set_page_config(
 )
 
 # --- BASE64 IMAGE CONVERTER (The Cloud Fix) ---
-def get_base64(bin_file):
-    try:
-        with open(bin_file, 'rb') as f:
-            data = f.read()
-        return base64.b64encode(data).decode()
-    except:
-        return ""
+def get_base64(file_path):
+    import os
+    # List of possible paths to check (Cloud vs Local)
+    possible_paths = [
+        file_path,                          # e.g., "app/static/bg1.jpg"
+        file_path.replace("app/", ""),      # e.g., "static/bg1.jpg"
+        os.path.join(os.getcwd(), file_path) # Absolute path
+    ]
+    
+    for path in possible_paths:
+        if os.path.exists(path):
+            with open(path, 'rb') as f:
+                return base64.b64encode(f.read()).decode()
+    
+    # If it gets here, it failed. Let's show the error for just this file.
+    st.error(f"❌ File Not Found: {file_path}")
+    return ""
 
-# Convert images to code strings for HTML injection
+# Convert images (Keep your names exactly like this)
 bg1_b64 = get_base64("app/static/bg1.jpg")
-st.write(f"Debug: Image 1 exists? {len(bg1_b64) > 0}")
 bg2_b64 = get_base64("app/static/bg2.jpg")
 bg3_b64 = get_base64("app/static/bg3.jpg")
 bg4_b64 = get_base64("app/static/bg4.jpg")
