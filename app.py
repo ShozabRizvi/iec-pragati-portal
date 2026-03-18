@@ -233,6 +233,9 @@ def scroll_to_top():
 
 # --- 3. GOOGLE SHEETS SAVING LOGIC ---
 def save_to_google_sheets(rm_data, chat_history):
+    import time
+    from datetime import datetime
+    
     now = datetime.now()
     date_str = now.strftime("%Y-%m-%d")
     time_str = now.strftime("%H:%M:%S")
@@ -249,23 +252,23 @@ def save_to_google_sheets(rm_data, chat_history):
         rm_data.get("UDISE", ""), rm_data.get("Observer", "")
     ] + user_answers
 
-   try:
+    try:
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
         
-        # This line pulls the credentials from the "Advanced Settings" you pasted on Streamlit
+        # Pulls the credentials from the Streamlit Advanced Settings
         creds_dict = st.secrets["gcp_service_account"]
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         
         client = gspread.authorize(creds)
         
-        # Use your TEST Sheet ID here first
+        # PASTE YOUR ACTUAL SHEET ID BETWEEN THE QUOTES BELOW
         sheet = client.open_by_key("YOUR_TEST_SHEET_ID_HERE").sheet1
         sheet.append_row(data_row)
         return True
+        
     except Exception as e:
         st.error(f"Database Connection Error: {e}")
         return False
-
 # --- 4. DATA LOADER ---
 @st.cache_data
 def load_rm_data():
