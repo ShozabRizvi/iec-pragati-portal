@@ -11,10 +11,20 @@ from PIL import Image
 
 # --- 1. ENTERPRISE UI CONFIGURATION ---
 try:
-    # Use PIL to load the icon for the browser tab
-    tab_icon = Image.open("app/static/icon4.png")
-except:
-    tab_icon = "📄"
+    # 1. We define the path (ensure this matches GitHub exactly!)
+    icon_path = "static/icon4.png" 
+    
+    # 2. Open it with PIL
+    tab_icon = Image.open(icon_path)
+except Exception as e:
+    # Fallback if the file is missing or path is wrong
+    tab_icon = "📄" 
+
+st.set_page_config(
+    page_title="Pragati Portal | IEC", 
+    page_icon=tab_icon, # Passing the PIL Image object here
+    layout="centered"
+)
 
 st.set_page_config(
     page_title="Pragati Portal | IEC", 
@@ -369,7 +379,7 @@ elif st.session_state.current_page == 'CHAT_PAGE':
             st.markdown(f"""
                 <div class="true-fixed-header">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <img src="app/static/iec_logo.png" alt="IEC Logo" style="height: 55px; object-fit: contain;">
+                        <img src="data:image/png;base64,{iec_logo_b64}" alt="IEC Logo" style="height: 55px; object-fit: contain;">
                         <div style="text-align: right; font-size: 0.85rem; color: {theme_muted}; line-height: 1.2;">
                             <b>Observer:</b> {st.session_state.rm_data.get('Observer', 'Unknown')}<br>
                             <b>School:</b> {st.session_state.rm_data.get('School_Name', 'Unknown')}
