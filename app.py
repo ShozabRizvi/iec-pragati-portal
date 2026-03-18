@@ -33,6 +33,7 @@ def get_base64(bin_file):
 
 # Convert images to code strings for HTML injection
 bg1_b64 = get_base64("app/static/bg1.jpg")
+st.write(f"Debug: Image 1 exists? {len(bg1_b64) > 0}")
 bg2_b64 = get_base64("app/static/bg2.jpg")
 bg3_b64 = get_base64("app/static/bg3.jpg")
 bg4_b64 = get_base64("app/static/bg4.jpg")
