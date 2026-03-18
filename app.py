@@ -6,21 +6,44 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 from modules.chatbot_logic import questions_list
+import base64
+from PIL import Image
 
 # --- 1. ENTERPRISE UI CONFIGURATION ---
+try:
+    # Use PIL to load the icon for the browser tab
+    tab_icon = Image.open("app/static/icon4.png")
+except:
+    tab_icon = "📄"
+
 st.set_page_config(
     page_title="Pragati Portal | IEC", 
-    page_icon="app/static/icon4.png", 
+    page_icon=tab_icon, 
     layout="centered"
 )
+
+# --- BASE64 IMAGE CONVERTER (The Cloud Fix) ---
+def get_base64(bin_file):
+    try:
+        with open(bin_file, 'rb') as f:
+            data = f.read()
+        return base64.b64encode(data).decode()
+    except:
+        return ""
+
+# Convert images to code strings for HTML injection
+bg1_b64 = get_base64("app/static/bg1.jpg")
+bg2_b64 = get_base64("app/static/bg2.jpg")
+bg3_b64 = get_base64("app/static/bg3.jpg")
+bg4_b64 = get_base64("app/static/bg4.jpg")
+logo_b64 = get_base64("app/static/logo_clear.png")
+iec_logo_b64 = get_base64("app/static/iec_logo.png")
 
 # --- 1.5 PROFESSIONAL DARK MODE & ANIMATED BACKGROUND ---
 if 'dark_mode' not in st.session_state:
     st.session_state.dark_mode = False
 
-# Dynamic Variables for Light/Dark Mode
 if st.session_state.dark_mode:
-    # DARK MODE: Deep, slow-moving midnight colors (Tailwind Slate/Zinc vibes)
     theme_bg_gradient = "linear-gradient(-45deg, #0f172a, #1e1b4b, #064e3b, #171717)"
     theme_card = "#1e293b"      
     theme_text = "#f8fafc"      
@@ -28,9 +51,8 @@ if st.session_state.dark_mode:
     theme_bot_bubble = "#1e293b"
     theme_user_bubble = "#0c4a6e" 
     theme_user_border = "#075985"
-    theme_muted = "#94a3b8"  # Tailwind Slate 400
+    theme_muted = "#94a3b8"
 else:
-    # LIGHT MODE: Soft, slow-moving cloud & pastel colors
     theme_bg_gradient = "linear-gradient(-45deg, #f8fafc, #e0f2fe, #f1f5f9, #ecfdf5)"
     theme_card = "#ffffff"
     theme_text = "#0f172a"
@@ -38,173 +60,32 @@ else:
     theme_bot_bubble = "#ffffff"
     theme_user_bubble = "#e0f2fe"
     theme_user_border = "#bae6fd"
-    theme_muted = "#64748b"  # Tailwind Slate 500
+    theme_muted = "#64748b"
 
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-
-    /* --- 1. THE TAILWIND-STYLE LIQUID GRADIENT --- */
-    @keyframes gradientBG {{
-        0% {{ background-position: 0% 50%; }}
-        50% {{ background-position: 100% 50%; }}
-        100% {{ background-position: 0% 50%; }}
-    }}
-
-    /* Apply the animated gradient to the main app background */
-    .stApp {{ 
-        background: {theme_bg_gradient} !important; 
-        background-size: 300% 300% !important;
-        animation: gradientBG 18s ease-in-out infinite !important; 
-        font-family: 'Inter', sans-serif; 
-        color: {theme_text} !important; 
-    }}
-
-    /* --- 2. THE FLOATING MULTILINGUAL LETTERS --- */
-    @keyframes floatLetters {{
-        0% {{ transform: translateY(5vh) translateX(0px) rotate(0deg); opacity: 0; }}
-        10% {{ opacity: 0.04; }}
-        90% {{ opacity: 0.04; }}
-        100% {{ transform: translateY(-20vh) translateX(-20px) rotate(5deg); opacity: 0; }}
-    }}
-
-    .stApp::before {{
-        content: 'A अ 1 B आ 2 C इ 3 D ई 4 E उ 5 F ऊ 6 G ऋ 7 H ए 8 I ऐ 9 J ओ 0 K औ L क M ख N ग O घ P ङ Q च R छ S ज T झ U ञ V ट W ठ X ड Y ढ Z ण 0 त 1 थ 2 द 3 ध 4 न 5 प 6 फ 7 ब 8 भ 9 म A य B र C ल D व E श F ष G स H ह I क्ष J त्र K ज्ञ';
-        position: fixed;
-        top: -10%; left: -10%; width: 120%; height: 120%;
-        font-size: 42px;
-        font-weight: 600;
-        word-spacing: 80px;
-        line-height: 130px;
-        text-align: justify;
-        color: {theme_text};
-        opacity: 0.04; 
-        pointer-events: none;
-        z-index: 0;
-        overflow: hidden;
-        display: block;
-        animation: floatLetters 35s linear infinite; 
-    }}
-
-    /* Ensure content stays ABOVE the floating letters */
-    .block-container {{
-        position: relative;
-        z-index: 10;
-        padding-top: 150px !important; padding-bottom: 100px !important; 
-        max-width: 800px;
-    }}
-
-    /* Smooth color transitions for UI elements */
-    .true-fixed-header, .bubble, div.stButton > button, .hero-banner-container, 
-    .stSelectbox div[data-baseweb="select"], p, h1, h2, h3, span, label, div {{
-        transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease !important;
-    }}
-    
-    /* Force text colors for Streamlit elements */
-    p, h1, h2, h3, span, label {{ color: {theme_text} !important; }}
-
-    /* PINNED HEADER */
-    .true-fixed-header {{
-        position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important;
-        background: {theme_card} !important;
-        z-index: 999999 !important;
-        border-bottom: 1px solid {theme_border} !important;
-        border-top: 5px solid #0072CE !important; 
-        padding: 10px 10% 15px 10% !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important;
-    }}
-
-    /* CHAT BUBBLES */
-    .chat-row {{ width: 100%; display: flex; margin-bottom: 15px; z-index: 10; position: relative;}}
-    .row-bot {{ justify-content: flex-start; }}
-    .row-user {{ justify-content: flex-end; }}
-    
-    .bubble {{
-        max-width: 80%; padding: 12px 18px; border-radius: 15px;
-        font-size: 1rem; line-height: 1.5; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-    }}
-    .bubble-bot {{ background-color: {theme_bot_bubble}; border: 1px solid {theme_border}; border-bottom-left-radius: 2px; color: {theme_text}; }}
-    .bubble-user {{ background-color: {theme_user_bubble}; border: 1px solid {theme_user_border}; border-bottom-right-radius: 2px; color: {theme_text}; }} 
-
-    /* BUTTONS & INPUTS */
-    div.stButton > button {{
-        border-radius: 25px !important; 
-        border: 1.5px solid #0072CE !important;
-        background-color: transparent !important;
-        padding: 0.5rem 1rem !important; 
-        width: 100% !important;
-        transition: all 0.3s ease !important;
-    }}
-    
-    /* Fix text color for standard buttons */
-    div.stButton > button p {{
-        color: #0072CE !important; 
-        font-weight: 600 !important;
-        transition: all 0.3s ease !important;
-    }}
-
-    /* Standard Button Hover Effect */
-    div.stButton > button:hover {{ 
-        background-color: #0072CE !important; 
-        box-shadow: 0 6px 12px rgba(0, 114, 206, 0.2) !important;
-        transform: translateY(-2px) !important;
-    }}
-    div.stButton > button:hover p {{
-        color: #ffffff !important;
-    }}
-
-    /* PRIMARY BUTTONS ("Start Assessment", "Submit") */
-    div.stButton > button[kind="primary"] {{
-        background-color: #0072CE !important; 
-        border: none !important; 
-        padding: 0.75rem !important; 
-    }}
-    
-    /* Force primary button text to always be pure white */
-    div.stButton > button[kind="primary"] p {{
-        color: #ffffff !important; 
-        font-size: 1.1rem !important;
-        font-weight: 600 !important;
-    }}
-
-    /* Primary Button Hover Effect */
-    div.stButton > button[kind="primary"]:hover {{
-        background-color: #005A9E !important; 
-        box-shadow: 0 8px 15px rgba(0, 114, 206, 0.35) !important;
-        transform: translateY(-3px) !important;
-    }}
-
-    .stSelectbox div[data-baseweb="select"] {{ 
-        background-color: {theme_card} !important; 
-        border-radius: 12px !important; 
-        border-color: {theme_border} !important; 
-    }}
-    
-    /* Banner Class */
-    .hero-banner-container {{
-        width: 100%; border-radius: 15px; overflow: hidden; margin-bottom: 25px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid {theme_border};
-        position: relative; z-index: 10;
-    }}
-    .hero-banner-img {{ width: 100%; height: auto; display: block; }}
-
-    /* --- MOBILE RESPONSIVENESS & ENTRANCE ANIMATIONS --- */
-    @media (max-width: 768px) {{
-        .block-container {{ padding-top: 120px !important; padding-left: 15px !important; padding-right: 15px !important; }}
-        .true-fixed-header {{ padding: 10px 15px !important; }}
-        .bubble {{ max-width: 95%; font-size: 0.95rem; }}
-        div.stButton > button {{ min-height: 50px; }}
-    }}
-
-    @keyframes fadeInUp {{
-        from {{ opacity: 0; transform: translateY(20px); }}
-        to {{ opacity: 1; transform: translateY(0); }}
-    }}
-    
-    .stSelectbox, div.stButton, .stChatInputContainer {{
-        animation: fadeInUp 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
-    }}
-
+    @keyframes gradientBG {{ 0% {{ background-position: 0% 50%; }} 50% {{ background-position: 100% 50%; }} 100% {{ background-position: 0% 50%; }} }}
+    .stApp {{ background: {theme_bg_gradient} !important; background-size: 300% 300% !important; animation: gradientBG 18s ease-in-out infinite !important; font-family: 'Inter', sans-serif; color: {theme_text} !important; }}
+    @keyframes floatLetters {{ 0% {{ transform: translateY(5vh) translateX(0px) rotate(0deg); opacity: 0; }} 10% {{ opacity: 0.04; }} 90% {{ opacity: 0.04; }} 100% {{ transform: translateY(-20vh) translateX(-20px) rotate(5deg); opacity: 0; }} }}
+    .stApp::before {{ content: 'A अ 1 B आ 2 C इ 3 D ई 4 E उ 5 F ऊ 6 G ऋ 7 H ए 8 I ऐ 9 J ओ 0 K औ L क M ख N ग O घ P ङ Q च R छ S ज T झ U ञ V ट W ठ X ड Y ढ Z ण 0 त 1 थ 2 द 3 ध 4 न 5 प 6 फ 7 ब 8 भ 9 म A य B र C ल D व E श F ष G स H ह I क्ष J त्र K ज्ञ'; position: fixed; top: -10%; left: -10%; width: 120%; height: 120%; font-size: 42px; font-weight: 600; word-spacing: 80px; line-height: 130px; text-align: justify; color: {theme_text}; opacity: 0.04; pointer-events: none; z-index: 0; overflow: hidden; display: block; animation: floatLetters 35s linear infinite; }}
+    .block-container {{ position: relative; z-index: 10; padding-top: 150px !important; padding-bottom: 100px !important; max-width: 800px; }}
+    .true-fixed-header {{ position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; background: {theme_card} !important; z-index: 999999 !important; border-bottom: 1px solid {theme_border} !important; border-top: 5px solid #0072CE !important; padding: 10px 10% 15px 10% !important; box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important; }}
+    .bubble {{ max-width: 80%; padding: 12px 18px; border-radius: 15px; font-size: 1rem; line-height: 1.5; }}
+    .bubble-bot {{ background-color: {theme_bot_bubble}; border: 1px solid {theme_border}; color: {theme_text}; }}
+    .bubble-user {{ background-color: {theme_user_bubble}; border: 1px solid {theme_user_border}; color: {theme_text}; }}
+    div.stButton > button {{ border-radius: 25px !important; border: 1.5px solid #0072CE !important; background-color: transparent !important; width: 100% !important; transition: all 0.3s ease !important; }}
+    div.stButton > button p {{ color: #0072CE !important; font-weight: 600 !important; }}
+    div.stButton > button:hover {{ background-color: #0072CE !important; transform: translateY(-2px) !important; }}
+    div.stButton > button:hover p {{ color: #ffffff !important; }}
+    div.stButton > button[kind="primary"] {{ background-color: #0072CE !important; border: none !important; }}
+    div.stButton > button[kind="primary"] p {{ color: #ffffff !important; }}
+    .stSelectbox div[data-baseweb="select"] {{ background-color: {theme_card} !important; border-radius: 12px !important; border-color: {theme_border} !important; }}
+    .full-bleed-banner {{ width: 100vw; height: 380px; position: relative; left: 50%; transform: translateX(-50%); overflow: hidden; margin-top: -3rem; margin-bottom: 35px; background-color: #000; box-shadow: 0px 10px 25px rgba(0,0,0,0.15); border-bottom: 4px solid #0072CE; }}
+    .slider-track {{ display: flex; width: 500%; height: 100%; animation: slideLeft 24s infinite cubic-bezier(0.645, 0.045, 0.355, 1); }}
+    .slider-track img {{ width: 20%; height: 100%; object-fit: cover; object-position: center 20%; filter: brightness(1.15) contrast(1.05); }}
+    @keyframes slideLeft {{ 0%, 18% {{ transform: translateX(0); }} 25%, 43% {{ transform: translateX(-20%); }} 50%, 68% {{ transform: translateX(-40%); }} 75%, 93% {{ transform: translateX(-60%); }} 100% {{ transform: translateX(-80%); }} }}
+    .success-card {{ background: white; padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }}
     header {{visibility: hidden;}}
     </style>
 """, unsafe_allow_html=True)
@@ -303,32 +184,21 @@ if st.session_state.current_page == 'RM_PAGE':
     # 1. REMOVE ALL STREAMLIT PADDING (Pushes banner to the absolute roof)
     st.markdown("<style>.block-container { padding-top: 0rem !important; }</style>", unsafe_allow_html=True)
     
-   # 2. FULL-BLEED SLIDING BANNER (With Brightness Boost)
-    html_banner = f"""<style>
-.full-bleed-banner {{ width: 100vw; height: 380px; position: relative; left: 50%; transform: translateX(-50%); overflow: hidden; margin-top: -3rem; margin-bottom: 35px; background-color: #000; box-shadow: 0px 10px 25px rgba(0,0,0,0.15); border-bottom: 4px solid #0072CE; }}
-.slider-track {{ display: flex; width: 500%; height: 100%; animation: slideLeft 24s infinite cubic-bezier(0.645, 0.045, 0.355, 1); }}
-.slider-track img {{ width: 20%; height: 100%; object-fit: cover; object-position: center 20%; filter: brightness(1.15) contrast(1.05); }}
-@keyframes slideLeft {{
-0%, 18% {{ transform: translateX(0); }}
-25%, 43% {{ transform: translateX(-20%); }}
-50%, 68% {{ transform: translateX(-40%); }}
-75%, 93% {{ transform: translateX(-60%); }}
-100% {{ transform: translateX(-80%); }}
-}}
-</style>
-<div class="full-bleed-banner">
-<div class="slider-track">
-<img src="app/static/bg1.jpg">
-<img src="app/static/bg2.jpg">
-<img src="app/static/bg3.jpg">
-<img src="app/static/bg4.jpg">
-<img src="app/static/bg1.jpg">
-</div>
-<div style="position: absolute; top:0; left:0; right:0; height: 140px; background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 100%); z-index: 5;"></div>
-<div style="position: absolute; top: 15px; left:0.5px; z-index: 5;">
-<img src="app/static/logo_clear.png" style="height: 250px; filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.4));">
-</div>
-</div>"""
+   # 2. FULL-BLEED SLIDING BANNER (With Base64 Injection for Cloud)
+    html_banner = f"""
+    <div class="full-bleed-banner">
+    <div class="slider-track">
+    <img src="data:image/jpeg;base64,{bg1_b64}">
+    <img src="data:image/jpeg;base64,{bg2_b64}">
+    <img src="data:image/jpeg;base64,{bg3_b64}">
+    <img src="data:image/jpeg;base64,{bg4_b64}">
+    <img src="data:image/jpeg;base64,{bg1_b64}">
+    </div>
+    <div style="position: absolute; top:0; left:0; right:0; height: 140px; background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 100%); z-index: 5;"></div>
+    <div style="position: absolute; top: 15px; left: 5%; z-index: 10;">
+    <img src="data:image/png;base64,{logo_b64}" style="height: 150px; filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.4));">
+    </div>
+    </div>"""
     st.markdown(html_banner, unsafe_allow_html=True)
 
     # 3. HEADER TOOLS (Moved below the banner for a true website layout)
@@ -418,7 +288,7 @@ elif st.session_state.current_page == 'CHAT_PAGE':
     if st.session_state.form_completed:
         st.markdown("""
             <div class="success-card">
-                <img src="app/static/iec_logo.png" style="height: 60px; margin-bottom: 20px;">
+                <<img src="data:image/png;base64,{iec_logo_b64}" style="height: 60px; margin-bottom: 20px;">
                 <h2 style="color: #0072CE;">Your response has been recorded.</h2>
                 <p style="color: #5f6368;">Thank you for completing the assessment.</p>
             </div>
