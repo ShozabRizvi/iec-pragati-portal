@@ -139,14 +139,15 @@ st.markdown(f"""
     }}
     
     /* --- HIDE ALL STREAMLIT BRANDING & CLOUD BADGES --- */
-    #MainMenu { visibility: hidden !important; }
-    header { visibility: hidden !important; }
-    footer { visibility: hidden !important; }
-    .stDeployButton { display: none !important; }
-    [data-testid="stToolbar"] { display: none !important; }
+    #MainMenu {{ visibility: hidden !important; }}
+    header {{ visibility: hidden !important; }}
+    footer {{ visibility: hidden !important; }}
+    .stDeployButton {{ display: none !important; }}
+    [data-testid="stToolbar"] {{ display: none !important; }}
     
     /* This wildcard specifically hunts down and hides the Cloud Viewer/Creator Badges */
-    [class^="viewerBadge"] { display: none !important; }
+    [class^="viewerBadge"] {{ display: none !important; }}
+    
     </style>
 """, unsafe_allow_html=True)
 
