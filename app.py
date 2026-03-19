@@ -64,6 +64,7 @@ if st.session_state.dark_mode:
     theme_user_bubble = "#0c4a6e" 
     theme_user_border = "#075985"
     theme_muted = "#94a3b8"
+    theme_card_rgb = "30, 41, 59"
 else:
     theme_bg_gradient = "linear-gradient(-45deg, #f8fafc, #e0f2fe, #f1f5f9, #ecfdf5)"
     theme_card = "#ffffff"
@@ -73,6 +74,7 @@ else:
     theme_user_bubble = "#e0f2fe"
     theme_user_border = "#bae6fd"
     theme_muted = "#64748b"
+    theme_card_rgb = "255, 255, 255"
 
 st.markdown(f"""
     <style>
@@ -94,6 +96,30 @@ st.markdown(f"""
     div.stButton > button[kind="primary"] p {{ color: #ffffff !important; }}
     .stSelectbox div[data-baseweb="select"] {{ background-color: {theme_card} !important; border-radius: 12px !important; border-color: {theme_border} !important; }}
     
+    /* --- 1. Fix Widget Labels (Toggle & Selectbox Headings) --- */
+    div[data-testid="stWidgetLabel"] p,
+    div[data-testid="stWidgetLabel"] span,
+    div[data-testid="stToggle"] p,
+    div[data-testid="stSelectbox"] p,
+    div[data-testid="stSelectbox"] label {{
+        color: {theme_text} !important;
+        transition: color 0.4s ease !important;
+    }}
+
+    /* --- 2. Fix the Text INSIDE the Selectbox --- */
+    div[data-baseweb="select"] span {{
+        color: {theme_text} !important;
+    }}
+    
+    /* --- 3. Fix the Dropdown Menu Options (When Clicked) --- */
+    ul[data-baseweb="menu"] {{
+        background-color: {theme_card} !important;
+        border: 1px solid {theme_border} !important;
+    }}
+    ul[data-baseweb="menu"] li {{
+        color: {theme_text} !important;
+    }}
+    
     .full-bleed-banner {{ 
         width: 100vw; 
         height: 380px; 
@@ -102,12 +128,44 @@ st.markdown(f"""
         transform: translateX(-50%); 
         overflow: hidden; 
         margin-top: -3rem; 
-        margin-bottom: 35px; 
-        background-color: #000; 
-        box-shadow: 0px 15px 30px rgba(0,0,0,0.2); 
-        border-bottom: none !important;
-        mask-image: linear-gradient(to bottom, black 95%, transparent 100%);
-        -webkit-mask-image: linear-gradient(to bottom, black 95%, transparent 100%);
+        margin-bottom: 0px; /* Reduced to let content sit closer to the fade */
+        background-color: transparent; 
+        
+        /* --- THE GRADIENT OPACITY MASK --- */
+        /* This keeps the top 80% solid, then fades to 50%, then to 0% */
+        mask-image: linear-gradient(
+            to bottom, 
+            black 0%, 
+            black 75%, 
+            rgba(0, 0, 0, 0.5) 90%, 
+            transparent 100%
+        );
+        -webkit-mask-image: linear-gradient(
+            to bottom, 
+            black 0%, 
+            black 75%, 
+            rgba(0, 0, 0, 0.5) 90%, 
+            transparent 100%
+        );
+    }}
+
+    /* --- THE CONTENT BLENDER --- */
+    /* This ensures the 'RM Portal' container has that 70% opacity feel 
+       as it meets the banner transition */
+    .block-container {{ 
+        position: relative; 
+        z-index: 10; 
+        padding-top: 150px !important; 
+        background: transparent;
+    }}
+
+    /* Target the first container (RM Portal boxes) to give it 
+       the 70% opacity 'blend' you requested */
+    div[data-testid="stVerticalBlock"] > div:has(.stSelectbox) {{
+        background-color: rgba(var(--theme-card-rgb), 0.7) !important;
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 20px;
     }}
 
     /* This adds a glowing "Transition Line" that blends into your background */
