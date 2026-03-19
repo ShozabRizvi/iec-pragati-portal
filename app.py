@@ -259,17 +259,17 @@ if st.session_state.current_page == 'RM_PAGE':
    # 2. FULL-BLEED SLIDING BANNER (With Base64 Injection for Cloud)
     html_banner = f"""
     <div class="full-bleed-banner">
-    <div class="slider-track">
-    <img src="data:image/jpeg;base64,{bg1_b64}">
-    <img src="data:image/jpeg;base64,{bg2_b64}">
-    <img src="data:image/jpeg;base64,{bg3_b64}">
-    <img src="data:image/jpeg;base64,{bg4_b64}">
-    <img src="data:image/jpeg;base64,{bg1_b64}">
-    </div>
-    <div style="position: absolute; top:0; left:0; right:0; height: 140px; background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 100%); z-index: 5;"></div>
-    <div style="position: absolute; top: 15px; left: 5%; z-index: 10;">
-    <img src="data:image/png;base64,{logo_b64}" style="height: 150px; filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.4));">
-    </div>
+        <div class="slider-track">
+            <img src="data:image/jpeg;base64,{bg1_b64}">
+            <img src="data:image/jpeg;base64,{bg2_b64}">
+            <img src="data:image/jpeg;base64,{bg3_b64}">
+            <img src="data:image/jpeg;base64,{bg4_b64}">
+            <img src="data:image/jpeg;base64,{bg1_b64}">
+        </div>
+        <div style="position: absolute; top:0; left:0; right:0; height: 140px; background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 100%); z-index: 5;"></div>
+        <div style="position: absolute; top: 15px; left: 5%; z-index: 10;">
+            <img class="banner-logo" src="data:image/png;base64,{logo_b64}">
+        </div>
     </div>"""
     st.markdown(html_banner, unsafe_allow_html=True)
 
