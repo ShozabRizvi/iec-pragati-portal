@@ -131,26 +131,27 @@ st.markdown(f"""
         overflow: hidden; 
         margin-top: -3rem; 
         
-        /* 1. Push the Dark Theme toggle and form safely down below the banner */
-        margin-bottom: 50px; 
-        background-color: #0f172a; 
+        /* Pulls the form and toggle slightly UP into the mist */
+        margin-bottom: -30px; 
+        background-color: transparent; 
         
-        /* 2. REMOVE the muddy mask-image completely */
-        mask-image: none !important;
-        -webkit-mask-image: none !important;
+        /* 1. Kill the hard lines and shadows completely */
+        box-shadow: none !important;
+        border-bottom: none !important;
         
-        /* 3. Add a premium, deep elevation shadow for a clean separation */
-        box-shadow: 0px 25px 50px -12px rgba(0, 0, 0, 0.6);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        /* 2. A long, smooth opacity fade */
+        mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+        -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
     }}
 
-    /* 4. Add a sleek dark gradient INSIDE the bottom of the photo so it grounds the image */
+    /* 3. The Magic Color Blender */
+    /* This tints the bottom of the photo to exactly match your current Light/Dark theme */
     .full-bleed-banner::after {{
         content: "";
         position: absolute;
         bottom: 0; left: 0; right: 0;
-        height: 120px;
-        background: linear-gradient(to bottom, transparent, rgba(15, 23, 42, 0.8));
+        height: 180px;
+        background: linear-gradient(to bottom, transparent, {theme_fade_color});
         z-index: 2;
         pointer-events: none;
     }}
