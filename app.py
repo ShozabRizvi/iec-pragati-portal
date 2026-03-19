@@ -128,59 +128,29 @@ st.markdown(f"""
         transform: translateX(-50%); 
         overflow: hidden; 
         margin-top: -3rem; 
-        margin-bottom: 0px; /* Reduced to let content sit closer to the fade */
-        background-color: transparent; 
         
-        /* --- THE GRADIENT OPACITY MASK --- */
-        /* This keeps the top 80% solid, then fades to 50%, then to 0% */
-        mask-image: linear-gradient(
-            to bottom, 
-            black 0%, 
-            black 75%, 
-            rgba(0, 0, 0, 0.5) 90%, 
-            transparent 100%
-        );
-        -webkit-mask-image: linear-gradient(
-            to bottom, 
-            black 0%, 
-            black 75%, 
-            rgba(0, 0, 0, 0.5) 90%, 
-            transparent 100%
-        );
+        /* 1. Push the Dark Theme toggle and form safely down below the banner */
+        margin-bottom: 50px; 
+        background-color: #0f172a; 
+        
+        /* 2. REMOVE the muddy mask-image completely */
+        mask-image: none !important;
+        -webkit-mask-image: none !important;
+        
+        /* 3. Add a premium, deep elevation shadow for a clean separation */
+        box-shadow: 0px 25px 50px -12px rgba(0, 0, 0, 0.6);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }}
 
-    /* --- THE CONTENT BLENDER --- */
-    /* This ensures the 'RM Portal' container has that 70% opacity feel 
-       as it meets the banner transition */
-    .block-container {{ 
-        position: relative; 
-        z-index: 10; 
-        padding-top: 150px !important; 
-        background: transparent;
-    }}
-
-    /* Target the first container (RM Portal boxes) to give it 
-       the 70% opacity 'blend' you requested */
-    div[data-testid="stVerticalBlock"] > div:has(.stSelectbox) {{
-        background-color: rgba(var(--theme-card-rgb), 0.7) !important;
-        backdrop-filter: blur(10px);
-        border-radius: 20px;
-        padding: 20px;
-    }}
-
-    /* This adds a glowing "Transition Line" that blends into your background */
+    /* 4. Add a sleek dark gradient INSIDE the bottom of the photo so it grounds the image */
     .full-bleed-banner::after {{
         content: "";
         position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        /* Using your brand blue and a soft green to match the liquid background */
-        background: linear-gradient(90deg, transparent, #0072CE, #8CC63F, transparent);
-        filter: blur(3px);
-        opacity: 0.6;
-        z-index: 10;
+        bottom: 0; left: 0; right: 0;
+        height: 120px;
+        background: linear-gradient(to bottom, transparent, rgba(15, 23, 42, 0.8));
+        z-index: 2;
+        pointer-events: none;
     }}
     
     .slider-track {{ display: flex; width: 500%; height: 100%; animation: slideLeft 24s infinite cubic-bezier(0.645, 0.045, 0.355, 1); }}
