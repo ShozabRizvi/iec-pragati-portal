@@ -189,7 +189,7 @@ def save_to_google_sheets(rm_data, chat_history):
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         client = gspread.authorize(creds)
         
-        sheet = client.open_by_key("Y1pKoScZ4MjIe_m-UNAUQAgq7VSgn4nRJQEXfLfOEC61w").sheet1
+        sheet = client.open_by_key("1pKoScZ4MjIe_m-UNAUQAgq7VSgn4nRJQEXfLfOEC61w").sheet1
         sheet.append_row(data_row)
         return True
     except Exception as e:
