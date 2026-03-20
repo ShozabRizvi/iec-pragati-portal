@@ -1,11 +1,13 @@
 import streamlit as st
 import time
 import streamlit.components.v1 as components
+import pandas as pd
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 from modules.chatbot_logic import questions_list
 import base64
 from PIL import Image
+import os
 
 # --- 1. ENTERPRISE UI CONFIGURATION ---
 try:
@@ -17,12 +19,11 @@ except Exception as e:
 st.set_page_config(
     page_title="Pragati Portal | IEC", 
     page_icon=tab_icon, 
-    layout="centered"
+    layout="wide" 
 )
 
 # --- BASE64 IMAGE CONVERTER ---
 def get_base64(file_path):
-    import os
     clean_path = file_path.replace("app/", "")
     if os.path.exists(clean_path):
         with open(clean_path, 'rb') as f:
@@ -34,7 +35,6 @@ bg2_b64 = get_base64("static/bg2.jpg")
 bg3_b64 = get_base64("static/bg3.jpg")
 bg4_b64 = get_base64("static/bg4.jpg")
 logo_b64 = get_base64("static/logo_clear.png")
-iec_logo_b64 = get_base64("static/iec_logo.png")
 
 # --- 1.5 PROFESSIONAL DARK MODE & ANIMATED BACKGROUND ---
 if 'dark_mode' not in st.session_state:
@@ -61,6 +61,9 @@ else:
     theme_user_border = "#bae6fd"
     theme_muted = "#64748b"
 
+# ==========================================
+# EXACT CSS FROM YOUR ORIGINAL CODE + PALETTE SCROLL FIX
+# ==========================================
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
@@ -68,15 +71,8 @@ st.markdown(f"""
     .stApp {{ background: {theme_bg_gradient} !important; background-size: 300% 300% !important; animation: gradientBG 18s ease-in-out infinite !important; font-family: 'Inter', sans-serif; color: {theme_text} !important; }}
     @keyframes floatLetters {{ 0% {{ transform: translateY(5vh) translateX(0px) rotate(0deg); opacity: 0; }} 10% {{ opacity: 0.04; }} 90% {{ opacity: 0.04; }} 100% {{ transform: translateY(-20vh) translateX(-20px) rotate(5deg); opacity: 0; }} }}
     .stApp::before {{ content: 'A अ 1 B आ 2 C इ 3 D ई 4 E उ 5 F ऊ 6 G ऋ 7 H ए 8 I ऐ 9 J ओ 0 K औ L क M ख N ग O घ P ङ Q च R छ S ज T झ U ञ V ट W ठ X ड Y ढ Z ण 0 त 1 थ 2 द 3 ध 4 न 5 प 6 फ 7 ब 8 भ 9 म A य B र C ल D व E श F ष G स H ह I क्ष J त्र K ज्ञ'; position: fixed; top: -10%; left: -10%; width: 120%; height: 120%; font-size: 42px; font-weight: 600; word-spacing: 80px; line-height: 130px; text-align: justify; color: {theme_text}; opacity: 0.04; pointer-events: none; z-index: 0; overflow: hidden; display: block; animation: floatLetters 35s linear infinite; }}
-    .block-container {{ position: relative; z-index: 10; padding-top: 150px !important; padding-bottom: 100px !important; max-width: 800px; }}
+    .block-container {{ position: relative; z-index: 10; padding-top: 130px !important; padding-bottom: 100px !important; max-width: 1200px; }} 
     .true-fixed-header {{ position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; background: {theme_card} !important; z-index: 999999 !important; border-bottom: 1px solid {theme_border} !important; border-top: 5px solid #0072CE !important; padding: 10px 10% 15px 10% !important; box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important; }}
-    
-    .chat-row {{ display: flex; margin-bottom: 20px; width: 100%; }}
-    .row-bot {{ justify-content: flex-start; }}
-    .row-user {{ justify-content: flex-end; }}
-    .bubble {{ max-width: 80%; padding: 12px 18px; border-radius: 15px; font-size: 1rem; line-height: 1.5; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }}
-    .bubble-bot {{ background-color: {theme_bot_bubble}; border: 1px solid {theme_border}; color: {theme_text}; border-bottom-left-radius: 4px; }}
-    .bubble-user {{ background-color: {theme_user_bubble}; border: 1px solid {theme_user_border}; color: {theme_text}; border-bottom-right-radius: 4px; }}
     
     div.stButton > button {{ border-radius: 25px !important; border: 1.5px solid #0072CE !important; background-color: transparent !important; width: 100% !important; transition: all 0.3s ease !important; }}
     div.stButton > button p {{ color: #0072CE !important; font-weight: 600 !important; }}
@@ -86,91 +82,68 @@ st.markdown(f"""
     div.stButton > button[kind="primary"] p {{ color: #ffffff !important; }}
     
     .stSelectbox div[data-baseweb="select"] {{ background-color: {theme_card} !important; border-radius: 12px !important; border-color: {theme_border} !important; }}
-    div[data-testid="stWidgetLabel"] p, div[data-testid="stWidgetLabel"] span, div[data-testid="stToggle"] p, div[data-testid="stSelectbox"] p, div[data-testid="stSelectbox"] label {{ color: {theme_text} !important; transition: color 0.4s ease !important; }}
+    label p, label span, div[data-testid="stWidgetLabel"] p, div[data-testid="stWidgetLabel"] span, div[data-testid="stToggle"] p, div[data-testid="stSelectbox"] p, div[data-testid="stSelectbox"] label {{ color: {theme_text} !important; transition: color 0.4s ease !important; }}
     div[data-baseweb="select"] span {{ color: {theme_text} !important; }}
     ul[data-baseweb="menu"] {{ background-color: {theme_card} !important; border: 1px solid {theme_border} !important; }}
     ul[data-baseweb="menu"] li {{ color: {theme_text} !important; }}
 
-   /* ========================================================
-       MASTER FORM & INPUT THEME FIX (DROPDOWNS, CHAT, DATES)
-       ======================================================== */
-    
-    /* 1. Kills the giant white block at the bottom of the screen */
     [data-testid="stBottom"] {{ background-color: {theme_fade_color} !important; }}
     [data-testid="stBottom"] > div {{ background-color: {theme_fade_color} !important; }}
 
-    /* 2. Chat Input Container (Absolute Override) */
-    div[data-testid="stChatInput"] {{ background-color: transparent !important; border: none !important; }}
-    div[data-testid="stChatInput"] > div {{ background-color: {theme_card} !important; border: 1px solid {theme_border} !important; border-radius: 10px !important; }}
-    
-    /* Target the text area to force transparency */
-    div[data-testid="stChatInput"] textarea {{ 
-        color: {theme_text} !important; 
-        -webkit-text-fill-color: {theme_text} !important; 
-        caret-color: {theme_text} !important; 
-        background-color: transparent !important; /* <-- THIS REMOVES THE WHITE BOX */
-    }}
-    div[data-testid="stChatInput"] svg {{ fill: {theme_text} !important; }}
-
-    /* 3. Text, Numeric, and Date Inputs (Deep Override) */
     div[data-testid="stDateInput"] div[data-baseweb="input"], 
     div[data-testid="stTextInput"] div[data-baseweb="input"],
-    div[data-testid="stNumberInput"] div[data-baseweb="input"] {{ 
-        background-color: {theme_card} !important; 
-        border: 1px solid {theme_border} !important; 
-    }}
+    div[data-testid="stNumberInput"] div[data-baseweb="input"],
+    div[data-testid="stTextArea"] div[data-baseweb="base-input"] {{ background-color: {theme_card} !important; border: 1px solid {theme_border} !important; }}
     div[data-baseweb="base-input"] {{ background-color: transparent !important; }}
-    div[data-baseweb="input"] input {{ 
-        color: {theme_text} !important; 
-        -webkit-text-fill-color: {theme_text} !important; 
-        caret-color: {theme_text} !important; 
-        background-color: transparent !important; /* <-- THIS IS THE MAGIC FIX */
-    }}
+    div[data-baseweb="input"] input, div[data-baseweb="base-input"] textarea {{ color: {theme_text} !important; -webkit-text-fill-color: {theme_text} !important; caret-color: {theme_text} !important; background-color: transparent !important; }}
     div[data-testid="stDateInput"] label p {{ color: {theme_text} !important; }}
     div[data-testid="stDateInput"] svg {{ fill: {theme_text} !important; }}
     
-    /* 4. Dropdown Selectboxes (The button itself) */
     .stSelectbox div[data-baseweb="select"] {{ background-color: {theme_card} !important; border-radius: 10px !important; border-color: {theme_border} !important; }}
-    .stSelectbox div[data-baseweb="select"] > div {{ background-color: transparent !important; }} /* This kills the inner white box */
+    .stSelectbox div[data-baseweb="select"] > div {{ background-color: transparent !important; }} 
     .stSelectbox div[data-baseweb="select"] * {{ color: {theme_text} !important; }}
     .stSelectbox div[data-baseweb="select"] svg {{ fill: {theme_text} !important; }}
-    div[data-testid="stWidgetLabel"] p, div[data-testid="stWidgetLabel"] span {{ color: {theme_text} !important; }}
     
-    /* 5. Dropdown Popover Menus (The list that pops open) */
     div[data-baseweb="popover"] > div {{ background-color: {theme_card} !important; border: 1px solid {theme_border} !important; }}
     ul[data-baseweb="menu"] {{ background-color: {theme_card} !important; }}
     ul[data-baseweb="menu"] li {{ color: {theme_text} !important; background-color: {theme_card} !important; }}
     ul[data-baseweb="menu"] li:hover {{ background-color: {theme_border} !important; }}
     
-    .full-bleed-banner {{ 
-        width: 100vw; height: 380px; position: relative; left: 50%; transform: translateX(-50%); overflow: hidden; 
-        margin-top: -3rem; margin-bottom: -50px; background-color: transparent; 
-        mask-image: linear-gradient(to bottom, black 60%, transparent 100%); 
-        -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%); 
-    }}
+    .full-bleed-banner {{ width: 100vw; height: 380px; position: relative; left: 50%; transform: translateX(-50%); overflow: hidden; margin-top: -3rem; margin-bottom: -50px; background-color: transparent; mask-image: linear-gradient(to bottom, black 60%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%); }}
     .full-bleed-banner::after {{ content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 160px; background: linear-gradient(to bottom, transparent 0%, {theme_fade_color} 100%); z-index: 2; pointer-events: none; }}
     .slider-track {{ display: flex; width: 500%; height: 100%; animation: slideLeft 24s infinite cubic-bezier(0.645, 0.045, 0.355, 1); }}
     .slider-track img {{ width: 20%; height: 100%; object-fit: cover; object-position: center 20%; filter: brightness(1.15) contrast(1.05); }}
     @keyframes slideLeft {{ 0%, 18% {{ transform: translateX(0); }} 25%, 43% {{ transform: translateX(-20%); }} 50%, 68% {{ transform: translateX(-40%); }} 75%, 93% {{ transform: translateX(-60%); }} 100% {{ transform: translateX(-80%); }} }}
-    .success-card {{ background: white; padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }}
+    .success-card {{ background: {theme_card}; padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid {theme_border}; margin-top: 50px; }}
     .banner-logo {{ height: 130px; filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.4)); transition: all 0.3s ease; }}
+
+    /* --- THE PALETTE SCROLL FIX (STOPS JUMPING) --- */
+    .palette-box {{
+        background: {theme_card};
+        padding: 15px;
+        border-radius: 15px;
+        border: 1px solid {theme_border};
+        max-height: 75vh;
+        overflow-y: auto;
+    }}
+    .palette-box::-webkit-scrollbar {{ width: 6px; }}
+    .palette-box::-webkit-scrollbar-track {{ background: transparent; }}
+    .palette-box::-webkit-scrollbar-thumb {{ background: {theme_border}; border-radius: 3px; }}
 
     @media screen and (max-width: 768px) {{
         .full-bleed-banner {{ height: 50vw !important; min-height: 200px !important; margin-bottom: -20px !important; }}
         .full-bleed-banner::after {{ height: 70px !important; }}
         .banner-logo {{ height: 45px !important; margin-top: -5px !important; }}
-        .slider-track img {{ object-position: center 10% !important; }}
         .block-container {{ padding-top: 80px !important; }}
+        .palette-box {{ max-height: 40vh; margin-top: 20px; }}
     }}
     
-    /* --- HIDE ALL STREAMLIT BRANDING, SPINNERS, & CLOUD BADGES --- */
     #MainMenu {{ visibility: hidden !important; }}
     header {{ visibility: hidden !important; }}
     footer {{ visibility: hidden !important; }}
     .stDeployButton {{ display: none !important; }}
     [data-testid="stToolbar"] {{ display: none !important; }}
-    [data-testid="stStatusWidget"] {{ display: none !important; visibility: hidden !important; }} /* NUKES THE SPINNER */
-    
+    [data-testid="stStatusWidget"] {{ display: none !important; visibility: hidden !important; }} 
     div[class*="viewerBadge"] {{ display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; z-index: -9999 !important; }}
     </style>
 """, unsafe_allow_html=True)
@@ -195,21 +168,12 @@ components.html("""
     </script>
 """, height=0)
 
-# --- 2. JAVASCRIPT SCROLL & LEAF ANIMATION ---
-def trigger_leaf():
-    components.html("""
-        <style>
-            @keyframes leafFloat { 0% { transform: translateX(-50px) translateY(0) rotate(0deg); opacity: 0; } 10% { opacity: 0.8; } 90% { opacity: 0.8; } 100% { transform: translateX(100vw) translateY(50px) rotate(45deg); opacity: 0; } }
-            .leaf-trigger { position: fixed; top: 30%; left: 0; width: 35px; height: 35px; fill: #8CC63F; opacity: 0; z-index: 9999; pointer-events: none; animation: leafFloat 2.5s ease-in-out forwards; }
-        </style>
-        <svg class="leaf-trigger" viewBox="0 0 24 24"><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8.12,20C11,20 14.27,15.5 17,12C18,12 20,12 22,10C22,7 19,5 17,5C15,5 12,7 12,8C12,8 12,8 17,8Z"/></svg>
-    """, height=0)
-
+# --- 2. JAVASCRIPT SCROLL ---
 def scroll_to_top():
     components.html("""<script>setTimeout(function() { window.parent.scrollTo({top: 0, behavior: 'smooth'}); const mainView = window.parent.document.querySelector('.main'); if (mainView) { mainView.scrollTo({top: 0, behavior: 'smooth'}); } }, 100);</script>""", height=0)
 
-# --- 3. GOOGLE SHEETS SAVING LOGIC ---
-def save_to_google_sheets(rm_data, chat_history):
+# --- 3. GOOGLE SHEETS SAVING LOGIC (ZERO JITTER) ---
+def save_to_google_sheets(rm_data):
     import time
     from datetime import datetime
     import gspread
@@ -218,21 +182,23 @@ def save_to_google_sheets(rm_data, chat_history):
     time_str = now.strftime("%H:%M:%S")
     submission_id = f"REQ-{int(time.time())}"
 
-    user_answers = []
-    q_idx = 1
-    for msg in chat_history:
-        if msg["role"] == "user":
-            user_answers.append(f"Q{q_idx}. {msg['content']}")
-            q_idx += 1
-
     data_row = [
         submission_id, date_str, time_str,
         rm_data.get("State", ""), rm_data.get("District", ""),
         rm_data.get("Block", ""), rm_data.get("Cluster", ""),
         rm_data.get("GP_NP", ""), rm_data.get("Gram_Panchayat", ""),
         rm_data.get("School_Type", ""), rm_data.get("School_Name", ""),
-        rm_data.get("UDISE", ""), rm_data.get("Observer", "")
-    ] + user_answers
+        rm_data.get("UDISE", ""), rm_data.get("Observer", ""),
+        rm_data.get("Role", ""), rm_data.get("Post", "")
+    ]
+    
+    for q in questions_list:
+        ans_key = f"ans_{q['id']}"
+        ans = st.session_state.get(ans_key, None)
+        if ans is None or ans == "":
+            data_row.append("")
+        else:
+            data_row.append(str(ans))
 
     try:
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -250,30 +216,27 @@ def save_to_google_sheets(rm_data, chat_history):
 # --- 4. DATA LOADER ---
 @st.cache_data(show_spinner=False)
 def load_rm_data():
-    import pandas as pd
     file_name = "Process Tracker-2026-27.xlsx - RM.csv"
     try:
         xl = pd.ExcelFile(file_name, engine='openpyxl')
         for sheet_name in xl.sheet_names:
             df = xl.parse(sheet_name)
             df.columns = [str(col).strip().replace('\ufeff', '') for col in df.columns]
-            if 'State' in df.columns: return df
+            if 'State' in df.columns: 
+                df['School_Display'] = df['UDISE Code'].astype(str) + " - " + df['School Name'].astype(str)
+                return df
     except Exception: pass 
     return pd.DataFrame() 
 
 # --- 5. STATE MANAGEMENT & CUSTOM LOADER ---
 if 'current_page' not in st.session_state: st.session_state.current_page = 'RM_PAGE'; scroll_to_top() 
 if 'rm_data' not in st.session_state: st.session_state.rm_data = {}
-if 'chat_history' not in st.session_state: st.session_state.chat_history = []
-if 'current_q_index' not in st.session_state: st.session_state.current_q_index = 0
+if 'active_q_idx' not in st.session_state: st.session_state.active_q_idx = 0
 if 'form_completed' not in st.session_state: st.session_state.form_completed = False
 if 'trigger_scroll' not in st.session_state: st.session_state.trigger_scroll = False
-if 'trigger_leaf' not in st.session_state: st.session_state.trigger_leaf = False
 
 if 'data_loaded' not in st.session_state:
     loader_placeholder = st.empty()
-    
-    # Determine the solid background color based on the current theme
     solid_bg = "#1e1f20" if st.session_state.dark_mode else "#f8fafc"
     
     loader_placeholder.markdown(f"""
@@ -281,59 +244,16 @@ if 'data_loaded' not in st.session_state:
             <div class="splash-content">
                 <img src='data:image/png;base64,{logo_b64}' class="splash-logo">
                 <h4 class="splash-text">Initializing Secure Portal...</h4>
-                <div class="loading-track">
-                    <div class="loading-bar"></div>
-                </div>
+                <div class="loading-track"><div class="loading-bar"></div></div>
             </div>
         </div>
         <style>
-            #true-splash-screen {{
-                position: fixed !important; 
-                top: 0 !important; 
-                left: 0 !important; 
-                right: 0 !important;
-                bottom: 0 !important;
-                width: 100vw !important; 
-                height: 100vh !important;
-                background-color: {solid_bg} !important; /* Hardcoded solid wall */
-                z-index: 9999999 !important; 
-                display: flex !important; 
-                justify-content: center !important; 
-                align-items: center !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }}
-            .splash-content {{
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                /* This pulls the logo slightly up to counteract the visual weight of the loading bar */
-                transform: translateY(-5vh); 
-            }}
-            .splash-logo {{ 
-                height: 160px; /* Increased size slightly more */
-                margin-bottom: 30px; 
-                animation: pulse 2s infinite; 
-            }}
-            .splash-text {{
-                color: #0072CE; 
-                font-weight: 600; 
-                margin-bottom: 20px; 
-                font-size: 1.3rem;
-            }}
-            .loading-track {{
-                width: 300px; 
-                height: 6px; 
-                background: {theme_border}; 
-                border-radius: 10px; 
-                overflow: hidden;
-            }}
-            .loading-bar {{
-                width: 50%; 
-                height: 100%; 
-                background: #0072CE; 
-                animation: slide 1.5s infinite linear;
-            }}
+            #true-splash-screen {{ position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100vh !important; background-color: {solid_bg} !important; z-index: 9999999 !important; display: flex !important; justify-content: center !important; align-items: center !important; margin: 0 !important; padding: 0 !important; }}
+            .splash-content {{ display: flex; flex-direction: column; align-items: center; transform: translateY(-5vh); }}
+            .splash-logo {{ height: 160px; margin-bottom: 30px; animation: pulse 2s infinite; }}
+            .splash-text {{ color: #0072CE; font-weight: 600; margin-bottom: 20px; font-size: 1.3rem; }}
+            .loading-track {{ width: 300px; height: 6px; background: {theme_border}; border-radius: 10px; overflow: hidden; }}
+            .loading-bar {{ width: 50%; height: 100%; background: #0072CE; animation: slide 1.5s infinite linear; }}
             @keyframes pulse {{ 0% {{ transform: scale(1); opacity: 0.8; }} 50% {{ transform: scale(1.05); opacity: 1; }} 100% {{ transform: scale(1); opacity: 0.8; }} }} 
             @keyframes slide {{ 0% {{ transform: translateX(-100%); }} 100% {{ transform: translateX(200%); }} }}
         </style>
@@ -346,11 +266,9 @@ if 'data_loaded' not in st.session_state:
 else:
     df_rm = load_rm_data()
 
-
 # ==========================================
-# --- 6. PAGE ROUTING & LOGIC ---
+# --- 6. PAGE 1: RM_PAGE (SMART SEARCH) ---
 # ==========================================
-
 if st.session_state.current_page == 'RM_PAGE':
     
     if st.session_state.trigger_scroll:
@@ -362,10 +280,8 @@ if st.session_state.current_page == 'RM_PAGE':
     html_banner = f"""
     <div class="full-bleed-banner">
         <div class="slider-track">
-            <img src="data:image/jpeg;base64,{bg1_b64}">
-            <img src="data:image/jpeg;base64,{bg2_b64}">
-            <img src="data:image/jpeg;base64,{bg3_b64}">
-            <img src="data:image/jpeg;base64,{bg4_b64}">
+            <img src="data:image/jpeg;base64,{bg1_b64}"><img src="data:image/jpeg;base64,{bg2_b64}">
+            <img src="data:image/jpeg;base64,{bg3_b64}"><img src="data:image/jpeg;base64,{bg4_b64}">
             <img src="data:image/jpeg;base64,{bg1_b64}">
         </div>
         <div style="position: absolute; top:0; left:0; right:0; height: 140px; background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 100%); z-index: 5;"></div>
@@ -380,91 +296,81 @@ if st.session_state.current_page == 'RM_PAGE':
         st.toggle("Dark Theme", key="dark_mode")
 
     with st.container(border=True):
+        st.subheader("1. Identify School & Observer")
         if not df_rm.empty:
-            df_filtered = df_rm.copy()
             
-            col1, col2 = st.columns(2)
-            with col1:
-                s_state = st.selectbox("1. State", df_filtered['State'].dropna().unique().tolist(), index=None, placeholder="Select State...")
-                if s_state: df_filtered = df_filtered[df_filtered['State'] == s_state]
-            with col2:
-                s_dist = st.selectbox("2. District", df_filtered['District'].dropna().unique().tolist() if s_state else [], index=None, placeholder="Select District...")
-                if s_dist: df_filtered = df_filtered[df_filtered['District'] == s_dist]
+            search_col, _ = st.columns([0.7, 0.3])
+            with search_col:
+                selected_school_raw = st.selectbox(
+                    "Search by UDISE Code or School Name", 
+                    df_rm['School_Display'].dropna().unique().tolist(), 
+                    index=None, 
+                    placeholder="Type UDISE or School Name..."
+                )
                 
-            col3, col4 = st.columns(2)
-            with col3:
-                s_block = st.selectbox("3. Block", df_filtered['Block'].dropna().unique().tolist() if s_dist else [], index=None, placeholder="Select Block...")
-                if s_block: df_filtered = df_filtered[df_filtered['Block'] == s_block]
-            with col4:
-                s_cluster = st.selectbox("4. Cluster", df_filtered['Cluster'].dropna().unique().tolist() if s_block else [], index=None, placeholder="Select Cluster...")
-                if s_cluster: df_filtered = df_filtered[df_filtered['Cluster'] == s_cluster]
+            if selected_school_raw:
+                s_udise = selected_school_raw.split(" - ")[0].strip()
+                row = df_rm[df_rm['UDISE Code'].astype(str) == s_udise].iloc[0]
                 
-            col5, col6 = st.columns(2)
-            with col5:
-                s_gp_np = st.selectbox("5. GP/NP", df_filtered['GP/NP'].dropna().unique().tolist() if s_cluster else [], index=None, placeholder="Select GP/NP...")
-                if s_gp_np: df_filtered = df_filtered[df_filtered['GP/NP'] == s_gp_np]
-            with col6:
-                s_gram_panchayat = st.selectbox("6. Gram Panchayat", df_filtered['Gram Panchayat'].dropna().unique().tolist() if s_gp_np else [], index=None, placeholder="Select Gram Panchayat...")
-                if s_gram_panchayat: df_filtered = df_filtered[df_filtered['Gram Panchayat'] == s_gram_panchayat]
-
-            col7, col8 = st.columns(2)
-            with col7:
-                s_school_type = st.selectbox("7. School Type", df_filtered['School Type'].dropna().unique().tolist() if s_gram_panchayat else [], index=None, placeholder="Select School Type...")
-                if s_school_type: df_filtered = df_filtered[df_filtered['School Type'] == s_school_type]
-            with col8:
-                s_school_name = st.selectbox("8. School Name", df_filtered['School Name'].dropna().unique().tolist() if s_school_type else [], index=None, placeholder="Select School Name...")
-                if s_school_name: df_filtered = df_filtered[df_filtered['School Name'] == s_school_name]
-
-            col9, col10 = st.columns(2)
-            with col9:
-                s_udise = st.selectbox("9. UDISE Code", df_filtered['UDISE Code'].dropna().unique().tolist() if s_school_name else [], index=None, placeholder="Select UDISE Code...")
-                if s_udise: df_filtered = df_filtered[df_filtered['UDISE Code'] == s_udise]
-            with col10:
-                s_teacher = st.selectbox("10. Teachers' Name", df_filtered["Teachers' Name"].dropna().unique().tolist() if s_udise else [], index=None, placeholder="Select Teacher...")
-
-            st.write("---")
-            if st.button("Start Assessment", type="primary"):
-                if s_state and s_teacher:
-                    st.session_state.rm_data = {
-                        "State": s_state, "District": s_dist, "Block": s_block,
-                        "Cluster": s_cluster, "GP_NP": s_gp_np, "Gram_Panchayat": s_gram_panchayat,
-                        "School_Type": s_school_type, "School_Name": s_school_name,
-                        "UDISE": s_udise, "Observer": s_teacher
-                    }
-                    initial_msg = f"Welcome, {s_teacher}. Let's begin the tracking for {s_school_name}.<br><br><b>Q1. {questions_list[0]['text']}</b>"
-                    st.session_state.chat_history = [{"role": "assistant", "content": initial_msg}]
-                    st.session_state.current_page = 'CHAT_PAGE'
-                    st.session_state.trigger_scroll = True 
-                    st.rerun()
-                else:
-                    st.error("Please complete the location hierarchy to proceed.")
+                # Heroicon Location Alert
+                st.markdown(f"""<div style='background-color: rgba(0, 114, 206, 0.1); color: #0072CE; padding: 15px; border-radius: 8px; border: 1px solid rgba(0, 114, 206, 0.2); margin-bottom: 15px; display: flex; align-items: center;'>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 20px; height: 20px; margin-right: 10px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                    </svg> <b>Location:&nbsp;</b> {row.get('State','')} > {row.get('District','')} > {row.get('Block','')} > {row.get('School Name','')}</div>""", unsafe_allow_html=True)
+                
+                teacher_list = df_rm[df_rm['UDISE Code'].astype(str) == s_udise]["Teachers' Name"].dropna().unique().tolist()
+                s_teacher = st.selectbox("Select Observer Name", teacher_list, index=None, placeholder="Who is conducting the observation?")
+                
+                if s_teacher:
+                    # Pull Role and Post
+                    t_row = df_rm[(df_rm['UDISE Code'].astype(str) == s_udise) & (df_rm["Teachers' Name"] == s_teacher)].iloc[0]
+                    role = t_row.get("Relevant Role", "None")
+                    post = t_row.get("Post", "None")
+                    
+                    if pd.isna(role) or str(role).strip() == "": role = "None"
+                    if pd.isna(post) or str(post).strip() == "": post = "None"
+                    
+                    # Heroicon Profile Alert
+                    st.markdown(f"""<div style='background-color: rgba(16, 185, 129, 0.1); color: #10b981; padding: 15px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.2); margin-bottom: 15px; display: flex; align-items: center;'>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 20px; height: 20px; margin-right: 10px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                        </svg> <b>Profile:&nbsp;</b> Role: {role} | Post: {post}</div>""", unsafe_allow_html=True)
+                    
+                    st.write("---")
+                    if st.button("Enter Examination Portal", type="primary"):
+                        st.session_state.rm_data = {
+                            "State": row.get("State",""), "District": row.get("District",""), "Block": row.get("Block",""),
+                            "Cluster": row.get("Cluster",""), "GP_NP": row.get("GP/NP",""), "Gram_Panchayat": row.get("Gram Panchayat",""),
+                            "School_Type": row.get("School Type",""), "School_Name": row.get("School Name",""),
+                            "UDISE": s_udise, "Observer": s_teacher, "Role": role, "Post": post
+                        }
+                        st.session_state.current_page = 'PORTAL_PAGE'
+                        st.session_state.trigger_scroll = True
+                        st.rerun()
         else:
             st.warning("Awaiting Data. Please ensure the Excel/CSV file is in the folder.")
 
-# --- 7. PAGE 2: CHAT INTERFACE ---
-elif st.session_state.current_page == 'CHAT_PAGE':
-    
+# ==========================================
+# --- 7. PAGE 2: PORTAL INTERFACE (JEE) ---
+# ==========================================
+elif st.session_state.current_page == 'PORTAL_PAGE':
+
     total_q = len(questions_list)
 
     if not st.session_state.form_completed:
         components.html("""<script> const parentWindow = window.parent; parentWindow.addEventListener('beforeunload', function (e) { e.preventDefault(); e.returnValue = ''; }); </script>""", height=0)
-    
-    header_placeholder = st.empty()
 
-    colA, colB = st.columns([0.8, 0.2])
-    with colB:
-        st.toggle("Dark Theme", key="dark_mode")
-
-    if st.session_state.trigger_leaf:
-        trigger_leaf()
-        st.session_state.trigger_leaf = False
+    if st.session_state.trigger_scroll:
+        scroll_to_top()
+        st.session_state.trigger_scroll = False
 
     if st.session_state.form_completed:
         st.markdown(f"""
             <div class="success-card">
-               <img src="data:image/png;base64,{logo_b64}" style="height: 60px; margin-bottom: 20px;">
+               <img src="data:image/png;base64,{logo_b64}" style="height: 130px; margin-bottom: 25px; filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.15));">
                 <h2 style="color: #0072CE;">Your response has been recorded.</h2>
-                <p style="color: #5f6368;">Thank you for completing the assessment.</p>
+                <p style="color: {theme_muted}; font-size: 1.1rem;">Thank you for completing the assessment.</p>
             </div>
         """, unsafe_allow_html=True)
         st.write("<br>", unsafe_allow_html=True)
@@ -473,92 +379,117 @@ elif st.session_state.current_page == 'CHAT_PAGE':
             st.rerun()
 
     else:
-        for msg in st.session_state.chat_history:
-            role_class = "row-bot" if msg["role"] == "assistant" else "row-user"
-            bubble_class = "bubble-bot" if msg["role"] == "assistant" else "bubble-user"
-            st.markdown(f'<div class="chat-row {role_class}"><div class="bubble {bubble_class}">{msg["content"]}</div></div>', unsafe_allow_html=True)
+        # THE FLICKER FIX: Calculate values instantly before injecting the HTML
+        answered_count = len([k for k,v in st.session_state.items() if k.startswith('ans_') and v not in [None, ""]])
+        progress_pct = int((answered_count / total_q) * 100) if total_q > 0 else 0
 
-        if st.session_state.get('is_typing', False):
-            st.markdown('<div class="chat-row row-bot"><div class="bubble bubble-bot"><i>loading...</i></div></div>', unsafe_allow_html=True)
-            time.sleep(0.5)
-            st.session_state.is_typing = False
-            st.rerun()
-
-        if not st.session_state.get('is_typing', False):
-            if st.session_state.current_q_index < total_q:
-                current_q = questions_list[st.session_state.current_q_index]
-                
-                def process_answer(ans_val):
-                    st.session_state.chat_history.append({"role": "user", "content": str(ans_val)})
-                    st.session_state.current_q_index += 1
-                    st.session_state.trigger_leaf = True
-                    st.session_state.is_typing = True
-                    
-                    if st.session_state.current_q_index < total_q:
-                        q_num = st.session_state.current_q_index + 1
-                        formatted_question = f"<b>Q{q_num}.</b> {questions_list[st.session_state.current_q_index]['text']}"
-                        st.session_state.chat_history.append({"role": "assistant", "content": formatted_question})
-                    else: 
-                        save_success = save_to_google_sheets(st.session_state.rm_data, st.session_state.chat_history)
-                        if save_success:
-                            st.session_state.form_completed = True
-                    st.rerun()
-
-                if current_q["type"] == "dropdown":
-                    options = current_q["options"]
-                    if len(options) <= 5:
-                        st.write("---")
-                        cols = st.columns(2)
-                        for i, opt in enumerate(options):
-                            with cols[i % 2]:
-                                if st.button(str(opt), key=f"btn_{st.session_state.current_q_index}_{i}"):
-                                    process_answer(opt)
-                    else:
-                        st.write("---")
-                        selected_opt = st.selectbox("Select an option:", options, index=None, placeholder="Select an option...", key=f"sel_{st.session_state.current_q_index}")
-                        if selected_opt is not None:
-                            if st.button("Submit Answer", type="primary"):
-                                process_answer(selected_opt)    
-
-                elif current_q["type"] in ["text", "numeric"]:
-                    ans = st.chat_input("Type your response here...")
-                    if ans: process_answer(ans)
-
-                elif current_q["type"] == "date":
-                    with st.container(border=True):
-                        selected_date = st.date_input("Select a Date:")
-                        if st.button("Submit Date", type="primary"):
-                            process_answer(selected_date)
-            else:
-                st.error("⚠️ Database Connection Error. Your response could not be saved to Google Sheets.")
-                st.info("Check if your Google Sheet ID and GCP Service Account credentials are correct in Streamlit Secrets.")
-                if st.button("Retry Saving", type="primary"):
-                    save_success = save_to_google_sheets(st.session_state.rm_data, st.session_state.chat_history)
-                    if save_success:
-                        st.session_state.form_completed = True
-                        st.rerun()
-
-    if not st.session_state.form_completed:
-        progress_val = st.session_state.current_q_index / total_q
-        progress_pct = int(progress_val * 100)
-        q_num = st.session_state.current_q_index + 1
-        
-        with header_placeholder:
-            st.markdown(f"""
-                <div class="true-fixed-header">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <img src="data:image/png;base64,{logo_b64}" alt="IEC Logo" style="height: 55px; object-fit: contain; transform: scale(1.6); transform-origin: left center;">
-                        <div style="text-align: right; font-size: 0.85rem; color: {theme_muted}; line-height: 1.2;">
-                            <b>Observer:</b> {st.session_state.rm_data.get('Observer', 'Unknown')}<br>
-                            <b>School:</b> {st.session_state.rm_data.get('School_Name', 'Unknown')}
-                        </div>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #0072CE; font-weight: 600; margin-bottom: 4px;">
-                        <span>Question {min(q_num, total_q)} of {total_q}</span>
-                        <span>{progress_pct}%</span>
-                    </div>
-                    <div style="width: 100%; background-color: {theme_border}; border-radius: 10px; height: 8px;">
-                        <div style="width: {progress_pct}%; background-color: #0072CE; height: 8px; border-radius: 10px; transition: width 0.4s ease;"></div>
+        # Inject fixed header directly (No empty placeholder delay)
+        st.markdown(f"""
+            <div class="true-fixed-header">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <img src="data:image/png;base64,{logo_b64}" alt="IEC Logo" style="height: 55px; object-fit: contain; transform: scale(1.6); transform-origin: left center;">
+                    <div style="text-align: right; font-size: 0.85rem; color: {theme_muted}; line-height: 1.2;">
+                        <b>Observer:</b> {st.session_state.rm_data.get('Observer', 'Unknown')}<br>
+                        <b>School:</b> {st.session_state.rm_data.get('School_Name', 'Unknown')}
                     </div>
                 </div>
-            """, unsafe_allow_html=True)
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #0072CE; font-weight: 600; margin-bottom: 4px;">
+                    <span>Question Portal ({answered_count}/{total_q} Answered)</span>
+                    <span>{progress_pct}%</span>
+                </div>
+                <div style="width: 100%; background-color: {theme_border}; border-radius: 10px; height: 8px;">
+                    <div style="width: {progress_pct}%; background-color: #0072CE; height: 8px; border-radius: 10px; transition: width 0.4s ease;"></div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+
+        colA, colB = st.columns([0.8, 0.2])
+        with colB:
+            st.toggle("Dark Theme", key="dark_mode")
+
+        left_col, right_col = st.columns([0.65, 0.35])
+
+        with right_col:
+            # THE SCROLL JUMP FIX: Wrap the palette in the scrollable CSS container
+            st.markdown("<div class='palette-box'>", unsafe_allow_html=True)
+            st.markdown("### Question Palette")
+            st.caption("🟩 Answered &nbsp;&nbsp;|&nbsp;&nbsp; ⬜ Unanswered")
+            
+            for category in ["Teacher's Collective", "Classroom Observation"]:
+                st.markdown(f"<span style='font-size: 0.85rem; font-weight: 600; color:{theme_muted};'>{category}</span>", unsafe_allow_html=True)
+                cat_questions = [q for q in questions_list if q.get("category") == category]
+                
+                cols = st.columns(5)
+                for c_idx, q in enumerate(cat_questions):
+                    global_idx = questions_list.index(q)
+                    q_num_display = str(global_idx + 1)
+                    
+                    ans_key = f"ans_{q['id']}"
+                    is_answered = st.session_state.get(ans_key) not in [None, ""]
+                    btn_type = "primary" if is_answered else "secondary"
+                    
+                    with cols[c_idx % 5]:
+                        if st.button(q_num_display, key=f"pal_{global_idx}", type=btn_type):
+                            st.session_state.active_q_idx = global_idx
+                            scroll_to_top()
+                            st.rerun()
+                st.write("") 
+
+            st.divider()
+            if st.button("FINAL SUBMIT", type="primary", icon=":material/cloud_upload:"):
+                success = save_to_google_sheets(st.session_state.rm_data)
+                if success:
+                    st.session_state.form_completed = True
+                    scroll_to_top()
+                    st.rerun()
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        with left_col:
+            active_q = questions_list[st.session_state.active_q_idx]
+            q_num = st.session_state.active_q_idx + 1
+            
+            st.markdown(f"""<h4 style='display: flex; align-items: center; color: {theme_text}; margin-bottom: 25px; border-bottom: 1px solid {theme_border}; padding-bottom: 10px;'>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 28px; height: 28px; margin-right: 10px; color: #0072CE;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
+                </svg> {st.session_state.rm_data.get('School_Name', 'School')} Assessment</h4>""", unsafe_allow_html=True)
+            
+            st.markdown(f"<h5 style='color:{theme_muted};'>{active_q.get('category', 'General')}</h5>", unsafe_allow_html=True)
+            
+            with st.container(border=True):
+                st.markdown(f"#### Q{q_num}. {active_q['text']}")
+                st.write("")
+                
+                ans_key = f"ans_{active_q['id']}"
+                
+                if active_q["type"] == "dropdown":
+                    options = active_q["options"]
+                    if len(options) <= 5:
+                        st.radio("Select an option:", options, index=None, key=ans_key)
+                    else:
+                        st.selectbox("Select an option:", options, index=None, placeholder="Choose an option...", key=ans_key)
+                        
+                elif active_q["type"] == "numeric":
+                    st.number_input("Enter a number:", value=None, step=1.0, key=ans_key)
+
+                elif active_q["type"] == "text":
+                    # ADAPTIVE TEXT AREA FIX: Added height and better placeholder
+                    st.text_area("Observations:", value=None, height=150, placeholder="Enter detailed observations here...", key=ans_key)
+
+                elif active_q["type"] == "date":
+                    st.date_input("Select a Date:", value=None, key=ans_key)
+
+            st.write("")
+            
+            nav_col1, nav_col2, nav_col3 = st.columns([0.3, 0.4, 0.3])
+            with nav_col1:
+                if st.session_state.active_q_idx > 0:
+                    if st.button("Previous", icon=":material/arrow_back:"):
+                        st.session_state.active_q_idx -= 1
+                        scroll_to_top()
+                        st.rerun()
+            with nav_col3:
+                if st.session_state.active_q_idx < len(questions_list) - 1:
+                    if st.button("Next", type="primary", icon=":material/arrow_forward:"):
+                        st.session_state.active_q_idx += 1
+                        scroll_to_top()
+                        st.rerun()
